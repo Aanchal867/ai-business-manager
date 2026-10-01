@@ -1,5 +1,9 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from database import get_connection
 
 from routes.customer import router as customers_router
 from routes.appointment import router as appointments_router
@@ -22,24 +26,26 @@ app = FastAPI(
 
 # =========================================================
 # CORS
-# React frontend ko FastAPI backend access karne ki permission
 # =========================================================
+
+frontend_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+# Optional production frontend origin
+frontend_origin = os.getenv("FRONTEND_ORIGIN")
+
+if frontend_origin:
+    frontend_origins.append(frontend_origin)
+
 
 app.add_middleware(
     CORSMiddleware,
-
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-
-        # Current Vite frontend
-        "http://localhost:5174",
-        "http://127.0.0.1:5174"
-    ],
-
+    allow_origins=frontend_origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 
@@ -53,6 +59,49 @@ def home():
         "message": "AI Business Manager Backend is running!",
         "status": "success"
     }
+
+
+# =========================================================
+# DATABASE HEALTH CHECK
+# =========================================================
+
+@app.get("/health/db")
+def database_health():
+    connection = None
+
+    try:
+        connection = get_connection()
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = 'users'
+                )
+            """)
+
+            users_table_exists = cursor.fetchone()[0]
+
+        return {
+            "status": "success",
+            "database": "connected",
+            "users_table": users_table_exists
+        }
+
+    except Exception as error:
+        return {
+            "status": "error",
+            "database": "connection_failed",
+            "error_type": type(error).__name__,
+            "error": str(error)
+        }
+
+    finally:
+        if connection:
+            connection.close()
 
 
 # =========================================================
