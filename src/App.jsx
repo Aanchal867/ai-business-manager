@@ -2692,8 +2692,6 @@ function Settings() {
 // =============================
 
 function AuthScreen({ onLogin }) {
-  const [mode, setMode] = useState("login")
-  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -2703,21 +2701,13 @@ function AuthScreen({ onLogin }) {
     e.preventDefault()
     setError("")
 
-    if (!email || !password || (mode === "signup" && !name)) {
+    if (!email || !password) {
       setError("Please fill all required fields.")
       return
     }
 
     try {
       setLoading(true)
-
-      if (mode === "signup") {
-        await apiRequest("/api/auth/signup", {
-          method: "POST",
-          skipAuth: true,
-          body: JSON.stringify({ name, email, password })
-        })
-      }
 
       const data = await apiRequest("/api/auth/login", {
         method: "POST",
@@ -2773,41 +2763,6 @@ function AuthScreen({ onLogin }) {
           <p style={{ color: "#777", marginTop: "8px" }}>AI Business Manager</p>
         </div>
 
-        <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
-          <button
-            type="button"
-            onClick={() => { setMode("login"); setError("") }}
-            style={{
-              flex: 1,
-              padding: "12px",
-              border: "none",
-              borderRadius: "10px",
-              cursor: "pointer",
-              background: mode === "login" ? "#ff7a00" : "#f1f1f1",
-              color: mode === "login" ? "#fff" : "#333",
-              fontWeight: 700
-            }}
-          >
-            Login
-          </button>
-          <button
-            type="button"
-            onClick={() => { setMode("signup"); setError("") }}
-            style={{
-              flex: 1,
-              padding: "12px",
-              border: "none",
-              borderRadius: "10px",
-              cursor: "pointer",
-              background: mode === "signup" ? "#ff7a00" : "#f1f1f1",
-              color: mode === "signup" ? "#fff" : "#333",
-              fontWeight: 700
-            }}
-          >
-            Sign Up
-          </button>
-        </div>
-
         {error && (
           <div style={{
             background: "#fff0f0",
@@ -2822,18 +2777,6 @@ function AuthScreen({ onLogin }) {
         )}
 
         <form onSubmit={submit}>
-          {mode === "signup" && (
-            <>
-              <label style={{ display: "block", marginBottom: "7px", fontWeight: 600 }}>Name</label>
-              <input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Your name"
-                style={inputStyle}
-              />
-            </>
-          )}
-
           <label style={{ display: "block", marginBottom: "7px", fontWeight: 600 }}>Email</label>
           <input
             type="email"
@@ -2869,15 +2812,9 @@ function AuthScreen({ onLogin }) {
               opacity: loading ? .7 : 1
             }}
           >
-            {loading ? "Please wait..." : mode === "login" ? "Login to ITSoft" : "Create Account"}
+            {loading ? "Please wait..." : "Login to ITSoft"}
           </button>
         </form>
-
-        {mode === "login" && (
-          <p style={{ textAlign: "center", color: "#888", fontSize: "13px", marginTop: "18px" }}>
-            Test account: test@example.com / Test@12345
-          </p>
-        )}
       </div>
     </div>
   )
