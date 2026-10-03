@@ -1,6 +1,6 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection
@@ -13,8 +13,9 @@ from routes.invoice import router as invoices_router
 from routes.dashboard import router as dashboard_router
 from routes.report import router as reports_router
 from routes.setting import router as settings_router
-from routes.auth import router as auth_router
+from routes.auth import require_admin, router as auth_router
 from routes.ai import router as ai_router
+from routes.contact import router as contact_router
 
 
 app = FastAPI(
@@ -29,6 +30,7 @@ app = FastAPI(
 # =========================================================
 
 frontend_origins = [
+    "https://ai-business-manager-gwcj.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
@@ -108,13 +110,14 @@ def database_health():
 # ROUTES
 # =========================================================
 
-app.include_router(customers_router)
-app.include_router(appointments_router)
-app.include_router(services_router)
-app.include_router(orders_router)
-app.include_router(invoices_router)
-app.include_router(dashboard_router)
-app.include_router(reports_router)
-app.include_router(settings_router)
+app.include_router(customers_router, dependencies=[Depends(require_admin)])
+app.include_router(appointments_router, dependencies=[Depends(require_admin)])
+app.include_router(services_router, dependencies=[Depends(require_admin)])
+app.include_router(orders_router, dependencies=[Depends(require_admin)])
+app.include_router(invoices_router, dependencies=[Depends(require_admin)])
+app.include_router(dashboard_router, dependencies=[Depends(require_admin)])
+app.include_router(reports_router, dependencies=[Depends(require_admin)])
+app.include_router(settings_router, dependencies=[Depends(require_admin)])
 app.include_router(auth_router)
-app.include_router(ai_router)
+app.include_router(ai_router, dependencies=[Depends(require_admin)])
+app.include_router(contact_router)

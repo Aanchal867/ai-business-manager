@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database import get_connection
-from schemas.schemas import SignupRequest, LoginRequest
+from schemas.schemas import LoginRequest
 
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -136,10 +136,40 @@ def get_current_user(
                 detail="Invalid authentication token"
             )
 
+        user_id = int(user_id)
+        connection = get_connection()
+
+        try:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                SELECT role
+                FROM users
+                WHERE id = %s AND email = %s
+                """,
+                (user_id, email)
+            )
+            user = cursor.fetchone()
+        finally:
+            connection.close()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token"
+            )
+
         return {
-            "id": int(user_id),
-            "email": email
+            "id": user_id,
+            "email": email,
+            "role": user[0]
         }
+
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token"
+        )
 
     except jwt.ExpiredSignatureError:
 
@@ -156,77 +186,26 @@ def get_current_user(
         )
 
 
+def require_admin(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator access required."
+        )
+
+    return current_user
+
+
 # --------------------------------------------------
 # SIGNUP
 # --------------------------------------------------
 
 @router.post("/signup")
-def signup(data: SignupRequest):
-
-    connection = get_connection()
-
-    try:
-
-        cursor = connection.cursor()
-
-        # Check whether email already exists
-
-        cursor.execute(
-            """
-            SELECT id
-            FROM users
-            WHERE email = %s
-            """,
-            (data.email,)
-        )
-
-        existing_user = cursor.fetchone()
-
-        if existing_user:
-
-            raise HTTPException(
-                status_code=400,
-                detail="Email already registered"
-            )
-
-        # Hash password
-
-        password_hash = hash_password(
-            data.password
-        )
-
-        # Create user
-
-        cursor.execute(
-            """
-            INSERT INTO users
-            (name, email, password)
-            VALUES (%s, %s, %s)
-            RETURNING id, name, email
-            """,
-            (
-                data.name,
-                data.email,
-                password_hash
-            )
-        )
-
-        user = cursor.fetchone()
-
-        connection.commit()
-
-        return {
-            "message": "User registered successfully",
-            "user": {
-                "id": user[0],
-                "name": user[1],
-                "email": user[2]
-            }
-        }
-
-    finally:
-
-        connection.close()
+def signup():
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Public registration is disabled."
+    )
 
 
 # --------------------------------------------------
@@ -244,7 +223,7 @@ def login(data: LoginRequest):
 
         cursor.execute(
             """
-            SELECT id, name, email, password
+            SELECT id, name, email, password, role
             FROM users
             WHERE email = %s
             """,
@@ -264,6 +243,7 @@ def login(data: LoginRequest):
         name = user[1]
         email = user[2]
         stored_password = user[3]
+        role = user[4]
 
         # Verify password
 
@@ -291,7 +271,8 @@ def login(data: LoginRequest):
             "user": {
                 "id": user_id,
                 "name": name,
-                "email": email
+                "email": email,
+                "role": role
             }
         }
 
