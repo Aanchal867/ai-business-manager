@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS public.contact_messages (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    business VARCHAR(150),
+    message TEXT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'new',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

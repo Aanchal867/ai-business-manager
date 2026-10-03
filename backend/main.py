@@ -1,4 +1,7 @@
+from contextlib import asynccontextmanager, closing
+import logging
 import os
+from pathlib import Path
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,11 +20,41 @@ from routes.auth import require_admin, router as auth_router
 from routes.ai import router as ai_router
 from routes.contact import router as contact_router
 
+logger = logging.getLogger(__name__)
+
+
+def initialize_contact_messages_table():
+    migration_path = (
+        Path(__file__).resolve().parent
+        / "migrations"
+        / "002_create_contact_messages.sql"
+    )
+
+    try:
+        migration_sql = migration_path.read_text(encoding="utf-8")
+
+        with closing(get_connection()) as connection:
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(migration_sql)
+    except Exception:
+        logger.exception("Failed to apply contact_messages database migration")
+        raise
+
+    logger.info("Ensured the contact_messages table exists")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    initialize_contact_messages_table()
+    yield
+
 
 app = FastAPI(
     title="AI Business Manager API",
     description="Backend API for AI Business Manager",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 
