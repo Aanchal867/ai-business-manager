@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import "./App.css"
+import ContactMessages from "./pages/ContactMessages"
 
 const API_BASE = "https://ai-business-manager-2.onrender.com"
 
@@ -2841,6 +2842,7 @@ function App() {
   const [user, setUser] = useState(null)
   const [page, setPage] = useState("dashboard")
 
+  const isAdmin = user?.role === "admin"
   const menu = [
     ["dashboard", "🏠", "Dashboard"],
     ["customers", "👥", "Customers"],
@@ -2849,7 +2851,8 @@ function App() {
     ["billing", "💰", "Billing"],
     ["reports", "📊", "Reports"],
     ["ai", "🤖", "AI Assistant"],
-    ["settings", "⚙️", "Settings"]
+    ["settings", "⚙️", "Settings"],
+    ...(isAdmin ? [["contact-messages", "✉️", "Contact Messages"]] : [])
   ]
 
   useEffect(() => {
@@ -2870,7 +2873,7 @@ function App() {
 
     apiRequest("/api/auth/me")
       .then(data => {
-        setUser(data)
+        setUser(data.user || data)
         setAuthenticated(true)
       })
       .catch(() => {
@@ -2975,6 +2978,9 @@ function App() {
         {page === "reports" && <Reports />}
         {page === "ai" && <AIAssistant />}
         {page === "settings" && <Settings />}
+        {page === "contact-messages" && isAdmin && (
+          <ContactMessages apiRequest={apiRequest} />
+        )}
       </main>
     </div>
   )
