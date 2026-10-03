@@ -2,8 +2,7 @@ import { useEffect, useState } from "react"
 import "./App.css"
 import "./PublicWebsite.css";
 import ContactMessages from "./pages/ContactMessages"
-
-const API_BASE = "https://ai-business-manager-2.onrender.com"
+import { API_BASE_URL } from "./apiConfig"
 
 async function apiRequest(path, options = {}) {
   const token = localStorage.getItem("token")
@@ -22,7 +21,7 @@ async function apiRequest(path, options = {}) {
     headers.Authorization = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     ...requestOptions,
     headers
   })
