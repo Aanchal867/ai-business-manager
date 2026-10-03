@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import "./App.css"
+import "./PublicWebsite.css";
 import ContactMessages from "./pages/ContactMessages"
 
 const API_BASE = "https://ai-business-manager-2.onrender.com"
@@ -65,19 +66,18 @@ function Dashboard({ setPage }) {
   const [dashboard, setDashboard] = useState(null)
   const [error, setError] = useState("")
 
-  useEffect(() => {
-    loadDashboard()
-  }, [])
-
-  const loadDashboard = async () => {
+  async function loadDashboard() {
     try {
-      setError("")
       const data = await apiRequest("/api/dashboard")
       setDashboard(data)
     } catch (err) {
       setError(err.message)
     }
   }
+
+  useEffect(() => {
+    void Promise.resolve().then(loadDashboard)
+  }, [])
 
   const summary = dashboard?.summary || {}
   const appointments = dashboard?.recent_appointments || []
@@ -255,7 +255,7 @@ function Customers() {
     loadCustomers()
   }, [])
 
-  const loadCustomers = async () => {
+  async function loadCustomers() {
     try {
       setError("")
       const data = await apiRequest("/api/customers")
@@ -500,7 +500,7 @@ function Appointments() {
     loadData()
   }, [])
 
-  const loadData = async () => {
+  async function loadData() {
     try {
       setError("")
 
@@ -777,7 +777,7 @@ function Orders() {
     loadData()
   }, [])
 
-  const loadData = async () => {
+  async function loadData() {
     try {
       setError("")
 
@@ -1094,7 +1094,7 @@ function Billing() {
     loadData()
   }, [])
 
-  const loadData = async () => {
+  async function loadData() {
     try {
       setError("")
 
@@ -1414,7 +1414,7 @@ function Reports() {
     loadReports()
   }, [])
 
-  const loadReports = async () => {
+  async function loadReports() {
     try {
       setError("")
       setLoading(true)
@@ -1478,17 +1478,6 @@ function Reports() {
       String(status).charAt(0).toUpperCase() +
       String(status).slice(1)
     )
-  }
-
-  const getStatusClass = status => {
-    const value = String(status || "").toLowerCase()
-
-    if (value === "completed") return "status-completed"
-    if (value === "pending") return "status-pending"
-    if (value === "confirmed") return "status-confirmed"
-    if (value === "cancelled") return "status-cancelled"
-
-    return "status-default"
   }
 
   const getStatusColor = status => {
@@ -2525,14 +2514,8 @@ function Settings() {
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
 
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
-  const loadSettings = async () => {
+  async function loadSettings() {
     try {
-      setError("")
-
       const data = await apiRequest("/api/settings")
 
       setBusinessName(data.business_name || "")
@@ -2543,6 +2526,10 @@ function Settings() {
       setError(err.message)
     }
   }
+
+  useEffect(() => {
+    void Promise.resolve().then(loadSettings)
+  }, [])
 
   const saveSettings = async () => {
     try {
@@ -2832,15 +2819,726 @@ const inputStyle = {
   outline: "none"
 }
 
+
+// =============================
+// PUBLIC WEBSITE
+// =============================
+
+const publicFeatures = [
+  ["👥", "Customer Management", "Store customers, contact details and history in one organized place."],
+  ["📅", "Appointments", "Schedule and manage appointments with clear status tracking."],
+  ["🛍️", "Orders & Services", "Manage services, orders, quantities and business activity."],
+  ["💰", "Billing & Invoices", "Track invoices, paid revenue and outstanding amounts."],
+  ["📊", "Reports & Analytics", "Understand revenue, orders, appointments and business performance."],
+  ["🤖", "AI Business Assistant", "Ask questions about your business data and get useful insights."]
+]
+
+function PublicNav({ navigate }) {
+  return (
+    <header className="public-nav">
+      <div className="public-container public-nav-inner">
+        <button className="public-brand" onClick={() => navigate("/")}>
+          <span className="public-brand-mark">IS</span>
+          <span>
+            <strong>ITSoft</strong>
+            <small>AI Business Manager</small>
+          </span>
+        </button>
+
+        <nav className="public-nav-links">
+          <button onClick={() => navigate("/")}>Home</button>
+          <button onClick={() => navigate("/features")}>Features</button>
+          <button onClick={() => navigate("/how-it-works")}>How It Works</button>
+          <button onClick={() => navigate("/pricing")}>Pricing</button>
+          <button onClick={() => navigate("/about")}>About</button>
+          <button onClick={() => navigate("/contact")}>Contact</button>
+        </nav>
+
+        <button className="public-login-button" onClick={() => navigate("/login")}>
+          Admin Login →
+        </button>
+      </div>
+    </header>
+  )
+}
+
+function PublicFooter({ navigate }) {
+  return (
+    <footer className="public-footer">
+      <div className="public-container public-footer-grid">
+        <div>
+          <button className="public-footer-brand" onClick={() => navigate("/")}>
+            <span className="public-brand-mark">IS</span>
+            <strong>ITSoft</strong>
+          </button>
+          <p>Run your business smarter with one simple business management platform.</p>
+        </div>
+
+        <div>
+          <h4>Product</h4>
+          <button onClick={() => navigate("/features")}>Features</button>
+          <button onClick={() => navigate("/pricing")}>Pricing</button>
+          <button onClick={() => navigate("/how-it-works")}>How It Works</button>
+        </div>
+
+        <div>
+          <h4>Company</h4>
+          <button onClick={() => navigate("/about")}>About</button>
+          <button onClick={() => navigate("/contact")}>Contact</button>
+          <button onClick={() => navigate("/login")}>Admin Login</button>
+        </div>
+      </div>
+
+      <div className="public-container public-footer-bottom">
+        © {new Date().getFullYear()} ITSoft. All rights reserved.
+      </div>
+    </footer>
+  )
+}
+
+function PublicLayout({ children, navigate }) {
+  return (
+    <div className="public-site">
+      <PublicNav navigate={navigate} />
+      {children}
+      <PublicFooter navigate={navigate} />
+    </div>
+  )
+}
+
+function Home({ navigate }) {
+  return (
+    <PublicLayout navigate={navigate}>
+      <main>
+        <section className="public-hero">
+          <div className="public-container public-hero-grid">
+            <div>
+              <span className="public-eyebrow">AI-POWERED BUSINESS MANAGEMENT</span>
+              <h1>Run Your Business<br /><span>Smarter With AI</span></h1>
+              <p>
+                ITSoft brings customers, appointments, services, orders,
+                billing, reports and AI-powered business insights into one
+                simple platform.
+              </p>
+
+              <div className="public-hero-actions">
+                <button className="public-primary-button" onClick={() => navigate("/login")}>
+                  Open Admin Dashboard →
+                </button>
+                <button className="public-secondary-button" onClick={() => navigate("/features")}>
+                  Explore Features
+                </button>
+              </div>
+
+              <div className="public-trust-row">
+                <span>✓ Customer management</span>
+                <span>✓ Business analytics</span>
+                <span>✓ AI assistant</span>
+              </div>
+            </div>
+
+            <div className="public-dashboard-preview">
+              <div className="preview-top">
+                <div>
+                  <span className="preview-dot" />
+                  <span className="preview-dot" />
+                  <span className="preview-dot" />
+                </div>
+                <small>ITSoft Dashboard</small>
+              </div>
+
+              <div className="preview-body">
+                <aside>
+                  <strong>IS ITSoft</strong>
+                  <span>Dashboard</span>
+                  <span>Customers</span>
+                  <span>Appointments</span>
+                  <span>Orders</span>
+                  <span>Reports</span>
+                </aside>
+
+                <div className="preview-main">
+                  <div className="preview-heading">
+                    <div>
+                      <small>BUSINESS OVERVIEW</small>
+                      <h3>Good Morning! 👋</h3>
+                    </div>
+                    <b>● Live Data</b>
+                  </div>
+
+                  <div className="preview-cards">
+                    <div><small>Customers</small><strong>248</strong></div>
+                    <div><small>Appointments</small><strong>36</strong></div>
+                    <div><small>Revenue</small><strong>₹84K</strong></div>
+                  </div>
+
+                  <div className="preview-chart">
+                    <div className="preview-chart-bars">
+                      {[38, 58, 45, 72, 54, 88, 66, 94, 76].map((height, index) => (
+                        <span key={index} style={{ height: `${height}%` }} />
+                      ))}
+                    </div>
+                    <small>Revenue overview</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="public-section">
+          <div className="public-container">
+            <div className="public-section-heading">
+              <span className="public-eyebrow">EVERYTHING IN ONE PLACE</span>
+              <h2>Tools that keep your business moving</h2>
+              <p>Manage daily operations and understand your business without jumping between different tools.</p>
+            </div>
+
+            <div className="public-feature-grid">
+              {publicFeatures.map(([icon, title, text]) => (
+                <div className="public-feature-card" key={title}>
+                  <div className="public-feature-icon">{icon}</div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                  <button onClick={() => navigate("/features")}>Learn more →</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="public-dark-section">
+          <div className="public-container public-two-column">
+            <div>
+              <span className="public-eyebrow">BUILT FOR REAL BUSINESS WORK</span>
+              <h2>From daily tasks to business insights.</h2>
+              <p>
+                Start with your customers and operations. As your data grows,
+                ITSoft turns that data into reports and AI-assisted answers.
+              </p>
+              <button className="public-primary-button" onClick={() => navigate("/how-it-works")}>
+                See How It Works →
+              </button>
+            </div>
+
+            <div className="public-workflow-card">
+              {[
+                ["01", "Add your customers", "Keep customer information organized."],
+                ["02", "Manage operations", "Handle appointments, services and orders."],
+                ["03", "Track revenue", "Create invoices and monitor payments."],
+                ["04", "Ask AI", "Get answers from your business data."]
+              ].map(item => (
+                <div className="public-workflow-item" key={item[0]}>
+                  <b>{item[0]}</b>
+                  <div>
+                    <h4>{item[1]}</h4>
+                    <p>{item[2]}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="public-section">
+          <div className="public-container public-ai-banner">
+            <div className="public-ai-icon">🤖</div>
+            <div>
+              <span className="public-eyebrow">AI BUSINESS ASSISTANT</span>
+              <h2>Ask your business data questions in plain language.</h2>
+              <p>
+                Your private admin dashboard can connect questions with
+                customers, orders, appointments, invoices and business reports.
+              </p>
+            </div>
+            <button className="public-primary-button" onClick={() => navigate("/login")}>
+              Try Admin Dashboard →
+            </button>
+          </div>
+        </section>
+
+        <section className="public-cta">
+          <div className="public-container">
+            <span className="public-eyebrow">READY TO GET STARTED?</span>
+            <h2>Bring your business operations together.</h2>
+            <p>Use one platform to manage your business and make better use of your data.</p>
+            <button className="public-primary-button" onClick={() => navigate("/login")}>
+              Open ITSoft →
+            </button>
+          </div>
+        </section>
+      </main>
+    </PublicLayout>
+  )
+}
+
+function Features({ navigate }) {
+  return (
+    <PublicLayout navigate={navigate}>
+      <main>
+        <section className="public-inner-hero">
+          <div className="public-container">
+            <span className="public-eyebrow">FEATURES</span>
+            <h1>Everything you need to manage your business.</h1>
+            <p>One connected workspace for customers, operations, finances, analytics and AI-assisted insights.</p>
+          </div>
+        </section>
+
+        <section className="public-section">
+          <div className="public-container public-feature-grid public-feature-grid-large">
+            {publicFeatures.map(([icon, title, text]) => (
+              <div className="public-feature-card" key={title}>
+                <div className="public-feature-icon">{icon}</div>
+                <h3>{title}</h3>
+                <p>{text}</p>
+                <ul>
+                  <li>Live backend data</li>
+                  <li>Simple management interface</li>
+                  <li>Designed for growing businesses</li>
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="public-cta">
+          <div className="public-container">
+            <h2>See the complete workspace.</h2>
+            <p>Access the private admin dashboard to work with your real business data.</p>
+            <button className="public-primary-button" onClick={() => navigate("/login")}>Admin Login →</button>
+          </div>
+        </section>
+      </main>
+    </PublicLayout>
+  )
+}
+
+function HowItWorks({ navigate }) {
+  const steps = [
+    ["01", "Set up your business", "Add your business information and prepare your workspace."],
+    ["02", "Add customers", "Create customer records and keep their details organized."],
+    ["03", "Manage daily work", "Handle appointments, services, orders and invoices."],
+    ["04", "Track performance", "Use reports to understand revenue and business activity."],
+    ["05", "Ask your AI assistant", "Ask business questions and get answers from your current data."]
+  ]
+
+  return (
+    <PublicLayout navigate={navigate}>
+      <main>
+        <section className="public-inner-hero">
+          <div className="public-container">
+            <span className="public-eyebrow">HOW IT WORKS</span>
+            <h1>A simple workflow from daily work to useful insights.</h1>
+            <p>ITSoft keeps your core business information connected so you can manage it from one place.</p>
+          </div>
+        </section>
+
+        <section className="public-section">
+          <div className="public-container public-steps">
+            {steps.map(([number, title, text]) => (
+              <div className="public-step" key={number}>
+                <span>{number}</span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="public-dark-section">
+          <div className="public-container public-two-column">
+            <div>
+              <span className="public-eyebrow">CONNECTED WORKFLOW</span>
+              <h2>Your business data stays connected.</h2>
+              <p>
+                Customers can connect to appointments and orders, orders can
+                connect to invoices, and reports can use that information to
+                show the bigger picture.
+              </p>
+            </div>
+            <div className="public-connection-card">
+              <div>Customers</div>
+              <b>↓</b>
+              <div>Appointments · Orders</div>
+              <b>↓</b>
+              <div>Invoices · Reports</div>
+              <b>↓</b>
+              <div className="highlight">AI Business Assistant</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="public-cta">
+          <div className="public-container">
+            <h2>Ready to manage your business?</h2>
+            <button className="public-primary-button" onClick={() => navigate("/login")}>Open Dashboard →</button>
+          </div>
+        </section>
+      </main>
+    </PublicLayout>
+  )
+}
+
+function Pricing({ navigate }) {
+  const plans = [
+    ["Starter", "₹499", "For small businesses getting organized.", ["Customers", "Appointments", "Services & Orders", "Basic dashboard"]],
+    ["Professional", "₹999", "For businesses that need deeper control.", ["Everything in Starter", "Billing & Invoices", "Reports & Analytics", "AI Assistant"]],
+    ["Business", "Custom", "For larger or customized requirements.", ["Custom workflows", "Business-specific features", "Advanced integrations", "Dedicated setup"]]
+  ]
+
+  return (
+    <PublicLayout navigate={navigate}>
+      <main>
+        <section className="public-inner-hero">
+          <div className="public-container">
+            <span className="public-eyebrow">PRICING</span>
+            <h1>Plans that can grow with your business.</h1>
+            <p>These are proposed starting plans and can be changed before public launch.</p>
+          </div>
+        </section>
+
+        <section className="public-section">
+          <div className="public-container public-pricing-grid">
+            {plans.map(([name, price, description, features], index) => (
+              <div className={`public-pricing-card ${index === 1 ? "featured" : ""}`} key={name}>
+                {index === 1 && <span className="public-plan-badge">POPULAR</span>}
+                <h3>{name}</h3>
+                <div className="public-price">{price}<small>{name === "Business" ? "" : " / month"}</small></div>
+                <p>{description}</p>
+                <ul>{features.map(feature => <li key={feature}>✓ {feature}</li>)}</ul>
+                <button className={index === 1 ? "public-primary-button" : "public-secondary-button"} onClick={() => navigate("/login")}>
+                  Get Started →
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </PublicLayout>
+  )
+}
+
+function About({ navigate }) {
+  return (
+    <PublicLayout navigate={navigate}>
+      <main>
+        <section className="public-inner-hero">
+          <div className="public-container">
+            <span className="public-eyebrow">ABOUT ITSOFT</span>
+            <h1>Practical software for businesses that want to work smarter.</h1>
+            <p>ITSoft is designed around a simple idea: business software should make daily work easier, not more complicated.</p>
+          </div>
+        </section>
+
+        <section className="public-section">
+          <div className="public-container public-two-column public-about-grid">
+            <div>
+              <span className="public-eyebrow">OUR APPROACH</span>
+              <h2>Simple on the surface. Powerful underneath.</h2>
+              <p>
+                ITSoft combines a clean management interface with a Python
+                backend, PostgreSQL data and an AI assistant layer.
+              </p>
+              <p>
+                The goal is to help businesses organize their information,
+                understand their performance and spend less time switching
+                between disconnected tools.
+              </p>
+            </div>
+
+            <div className="public-values-grid">
+              <div><strong>01</strong><h3>Practical</h3><p>Built around real business workflows.</p></div>
+              <div><strong>02</strong><h3>Simple</h3><p>Clear interfaces for everyday work.</p></div>
+              <div><strong>03</strong><h3>Connected</h3><p>Business data works together across modules.</p></div>
+              <div><strong>04</strong><h3>Intelligent</h3><p>AI can turn business data into useful answers.</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section className="public-cta">
+          <div className="public-container">
+            <h2>Explore the ITSoft workspace.</h2>
+            <button className="public-primary-button" onClick={() => navigate("/login")}>Admin Login →</button>
+          </div>
+        </section>
+      </main>
+    </PublicLayout>
+  )
+}
+
+function Contact({ navigate }) {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    business: "",
+    message: ""
+  })
+
+  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const submit = async e => {
+    e.preventDefault()
+
+    setSubmitted(false)
+    setError("")
+
+    if (!form.name.trim()) {
+      setError("Please enter your name.")
+      return
+    }
+
+    if (!form.email.trim()) {
+      setError("Please enter your email.")
+      return
+    }
+
+    if (!form.message.trim()) {
+      setError("Please enter your message.")
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      await apiRequest("/api/contact", {
+        method: "POST",
+        skipAuth: true,
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          business: form.business.trim(),
+          message: form.message.trim()
+        })
+      })
+
+      setSubmitted(true)
+
+      setForm({
+        name: "",
+        email: "",
+        business: "",
+        message: ""
+      })
+
+    } catch (err) {
+      setError(
+        err.message || "Unable to send your message. Please try again."
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <PublicLayout navigate={navigate}>
+      <main>
+
+        <section className="public-inner-hero">
+          <div className="public-container">
+            <span className="public-eyebrow">
+              CONTACT
+            </span>
+
+            <h1>
+              Let's talk about your business.
+            </h1>
+
+            <p>
+              Tell us what you want to manage, automate or improve.
+            </p>
+          </div>
+        </section>
+
+        <section className="public-section">
+
+          <div className="public-container public-contact-grid">
+
+            <div className="public-contact-info">
+
+              <span className="public-eyebrow">
+                GET IN TOUCH
+              </span>
+
+              <h2>
+                Have a question or a business requirement?
+              </h2>
+
+              <p>
+                Use the form and we can discuss the workflow
+                or customization you need.
+              </p>
+
+              <div className="public-contact-item">
+                <span>✉️</span>
+
+                <div>
+                  <small>Email</small>
+                  <strong>
+                    letstalk@itsoft.com
+                  </strong>
+                </div>
+              </div>
+
+              <div className="public-contact-item">
+                <span>📞</span>
+
+                <div>
+                  <small>Phone</small>
+                  <strong>
+                    +91 98828-31336
+                  </strong>
+                </div>
+              </div>
+
+              <div className="public-contact-item">
+                <span>📍</span>
+
+                <div>
+                  <small>Location</small>
+                  <strong>
+                    India
+                  </strong>
+                </div>
+              </div>
+
+            </div>
+
+
+            <form
+              className="public-contact-form"
+              onSubmit={submit}
+            >
+
+              {submitted && (
+                <div className="public-success">
+                  Thanks! Your message has been submitted successfully.
+                </div>
+              )}
+
+              {error && (
+                <div
+                  className="public-success"
+                  style={{
+                    background: "#fff1f1",
+                    color: "#c62828",
+                    border: "1px solid #ffd2d2"
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+
+              <label>
+                Name
+
+                <input
+                  required
+                  value={form.name}
+                  placeholder="Your name"
+                  onChange={e =>
+                    setForm({
+                      ...form,
+                      name: e.target.value
+                    })
+                  }
+                />
+              </label>
+
+
+              <label>
+                Email
+
+                <input
+                  required
+                  type="email"
+                  value={form.email}
+                  placeholder="you@example.com"
+                  onChange={e =>
+                    setForm({
+                      ...form,
+                      email: e.target.value
+                    })
+                  }
+                />
+              </label>
+
+
+              <label>
+                Business
+
+                <input
+                  value={form.business}
+                  placeholder="Business name"
+                  onChange={e =>
+                    setForm({
+                      ...form,
+                      business: e.target.value
+                    })
+                  }
+                />
+              </label>
+
+
+              <label>
+                Message
+
+                <textarea
+                  required
+                  rows="6"
+                  value={form.message}
+                  placeholder="Tell us what you need..."
+                  onChange={e =>
+                    setForm({
+                      ...form,
+                      message: e.target.value
+                    })
+                  }
+                />
+              </label>
+
+
+              <button
+                className="public-primary-button"
+                type="submit"
+                disabled={loading}
+                style={{
+                  opacity: loading ? 0.7 : 1,
+                  cursor: loading ? "not-allowed" : "pointer"
+                }}
+              >
+                {loading
+                  ? "Sending..."
+                  : "Send Message →"}
+              </button>
+
+            </form>
+
+          </div>
+
+        </section>
+
+      </main>
+    </PublicLayout>
+  )
+}
+
 // =============================
 // APP
 // =============================
 
 function App() {
   const [authenticated, setAuthenticated] = useState(false)
-  const [checkingAuth, setCheckingAuth] = useState(true)
+  const [checkingAuth, setCheckingAuth] = useState(
+    Boolean(localStorage.getItem("token"))
+  )
   const [user, setUser] = useState(null)
   const [page, setPage] = useState("dashboard")
+  const [publicPath, setPublicPath] = useState(window.location.pathname)
 
   const isAdmin = user?.role === "admin"
   const menu = [
@@ -2855,36 +3553,48 @@ function App() {
     ...(isAdmin ? [["contact-messages", "✉️", "Contact Messages"]] : [])
   ]
 
+  const navigate = path => {
+    window.history.pushState({}, "", path)
+    setPublicPath(path)
+    window.scrollTo(0, 0)
+  }
+
   useEffect(() => {
     const handleAuthExpired = () => {
       setAuthenticated(false)
       setUser(null)
       setPage("dashboard")
+      navigate("/")
     }
 
     window.addEventListener("auth-expired", handleAuthExpired)
 
     const token = localStorage.getItem("token")
 
-    if (!token) {
-      setCheckingAuth(false)
-      return
+    if (token) {
+      apiRequest("/api/auth/me")
+        .then(data => {
+          setUser(data.user || data)
+          setAuthenticated(true)
+          if (window.location.pathname === "/login") {
+            window.history.replaceState({}, "", "/dashboard")
+            setPublicPath("/dashboard")
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+          setAuthenticated(false)
+        })
+        .finally(() => setCheckingAuth(false))
     }
 
-    apiRequest("/api/auth/me")
-      .then(data => {
-        setUser(data.user || data)
-        setAuthenticated(true)
-      })
-      .catch(() => {
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
-        setAuthenticated(false)
-      })
-      .finally(() => setCheckingAuth(false))
+    const handlePopState = () => setPublicPath(window.location.pathname)
+    window.addEventListener("popstate", handlePopState)
 
     return () => {
       window.removeEventListener("auth-expired", handleAuthExpired)
+      window.removeEventListener("popstate", handlePopState)
     }
   }, [])
 
@@ -2892,6 +3602,7 @@ function App() {
     setUser(loggedInUser)
     setAuthenticated(true)
     setPage("dashboard")
+    navigate("/dashboard")
   }
 
   const logout = () => {
@@ -2899,16 +3610,39 @@ function App() {
     localStorage.removeItem("user")
     setAuthenticated(false)
     setUser(null)
+    setPage("dashboard")
+    navigate("/")
   }
 
   if (checkingAuth) {
     return <div className="auth-loading">Checking login...</div>
   }
 
-  if (!authenticated) {
-    return <AuthScreen onLogin={handleLogin} />
+  // Public website routes
+  if (!authenticated || publicPath !== "/dashboard") {
+    if (publicPath === "/login") {
+      if (authenticated) {
+        return <div className="auth-loading">Opening dashboard...</div>
+      }
+      return <AuthScreen onLogin={handleLogin} />
+    }
+
+    if (publicPath === "/dashboard" && !authenticated) {
+      return <AuthScreen onLogin={handleLogin} />
+    }
+
+    if (publicPath === "/features") return <Features navigate={navigate} />
+    if (publicPath === "/how-it-works") return <HowItWorks navigate={navigate} />
+    if (publicPath === "/pricing") return <Pricing navigate={navigate} />
+    if (publicPath === "/about") return <About navigate={navigate} />
+    if (publicPath === "/contact") return <Contact navigate={navigate} />
+
+    if (!authenticated) return <Home navigate={navigate} />
+
+    if (publicPath === "/") return <Home navigate={navigate} />
   }
 
+  // Private admin dashboard
   return (
     <div className="app">
       <aside className="sidebar">
@@ -2926,7 +3660,10 @@ function App() {
             <button
               key={item[0]}
               className={page === item[0] ? "active" : ""}
-              onClick={() => setPage(item[0])}
+              onClick={() => {
+                setPage(item[0])
+                if (publicPath !== "/dashboard") navigate("/dashboard")
+              }}
             >
               <span>{item[1]}</span>
               {item[2]}
@@ -2986,4 +3723,4 @@ function App() {
   )
 }
 
-export default App 
+export default App

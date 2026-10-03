@@ -127,11 +127,11 @@ def database_health():
         }
 
     except Exception as error:
+        logger.exception("Database health check failed")
         return {
             "status": "error",
             "database": "connection_failed",
-            "error_type": type(error).__name__,
-            "error": str(error)
+            "error_type": type(error).__name__
         }
 
     finally:
