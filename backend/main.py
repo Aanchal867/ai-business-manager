@@ -50,7 +50,7 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(
+fastapi_app = FastAPI(
     title="AI Business Manager API",
     description="Backend API for AI Business Manager",
     version="1.0.0",
@@ -75,20 +75,11 @@ if frontend_origin:
     frontend_origins.append(frontend_origin)
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=frontend_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
 # =========================================================
 # HOME
 # =========================================================
 
-@app.get("/")
+@fastapi_app.get("/")
 def home():
     return {
         "message": "AI Business Manager Backend is running!",
@@ -100,7 +91,7 @@ def home():
 # DATABASE HEALTH CHECK
 # =========================================================
 
-@app.get("/health/db")
+@fastapi_app.get("/health/db")
 def database_health():
     connection = None
 
@@ -143,14 +134,22 @@ def database_health():
 # ROUTES
 # =========================================================
 
-app.include_router(customers_router, dependencies=[Depends(require_admin)])
-app.include_router(appointments_router, dependencies=[Depends(require_admin)])
-app.include_router(services_router, dependencies=[Depends(require_admin)])
-app.include_router(orders_router, dependencies=[Depends(require_admin)])
-app.include_router(invoices_router, dependencies=[Depends(require_admin)])
-app.include_router(dashboard_router, dependencies=[Depends(require_admin)])
-app.include_router(reports_router, dependencies=[Depends(require_admin)])
-app.include_router(settings_router, dependencies=[Depends(require_admin)])
-app.include_router(auth_router)
-app.include_router(ai_router, dependencies=[Depends(require_admin)])
-app.include_router(contact_router)
+fastapi_app.include_router(customers_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(appointments_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(services_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(orders_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(invoices_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(dashboard_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(reports_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(settings_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(auth_router)
+fastapi_app.include_router(ai_router, dependencies=[Depends(require_admin)])
+fastapi_app.include_router(contact_router)
+
+app = CORSMiddleware(
+    app=fastapi_app,
+    allow_origins=frontend_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
