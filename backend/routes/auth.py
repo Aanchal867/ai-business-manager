@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
+import logging
 import os
 
 import jwt
@@ -11,6 +12,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import get_connection
 from schemas.schemas import LoginRequest
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -220,10 +223,10 @@ def signup():
 
 @router.post("/login")
 def login(data: LoginRequest):
-
-    connection = get_connection()
+    connection = None
 
     try:
+        connection = get_connection()
         cursor = connection.cursor()
 
         cursor.execute(
@@ -271,13 +274,17 @@ def login(data: LoginRequest):
                 "role": role
             }
         }
-    except psycopg.Error as error:
+    except HTTPException:
+        raise
+    except Exception as error:
+        logger.exception("Login failed while authenticating %s", data.email)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Authentication service unavailable."
         ) from error
     finally:
-        connection.close()
+        if connection is not None:
+            connection.close()
 
 
 # --------------------------------------------------
