@@ -23,6 +23,27 @@ from routes.contact import router as contact_router
 logger = logging.getLogger(__name__)
 
 
+def initialize_user_roles():
+    migration_path = (
+        Path(__file__).resolve().parent
+        / "migrations"
+        / "001_add_user_roles.sql"
+    )
+
+    try:
+        migration_sql = migration_path.read_text(encoding="utf-8")
+
+        with closing(get_connection()) as connection:
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(migration_sql)
+    except Exception:
+        logger.exception("Failed to apply user_roles database migration")
+        raise
+
+    logger.info("Ensured the users.role column and admin role are configured")
+
+
 def initialize_contact_messages_table():
     migration_path = (
         Path(__file__).resolve().parent
@@ -46,6 +67,7 @@ def initialize_contact_messages_table():
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    initialize_user_roles()
     initialize_contact_messages_table()
     yield
 
