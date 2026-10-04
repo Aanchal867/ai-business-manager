@@ -4,6 +4,7 @@ import hmac
 import os
 
 import jwt
+import psycopg
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -145,11 +146,16 @@ def get_current_user(
                 """
                 SELECT role
                 FROM users
-                WHERE id = %s AND email = %s
+                WHERE id = %s AND lower(email) = lower(%s)
                 """,
                 (user_id, email)
             )
             user = cursor.fetchone()
+        except psycopg.Error:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Authentication service unavailable."
+            )
         finally:
             connection.close()
 
@@ -218,22 +224,20 @@ def login(data: LoginRequest):
     connection = get_connection()
 
     try:
-
         cursor = connection.cursor()
 
         cursor.execute(
             """
             SELECT id, name, email, password, role
             FROM users
-            WHERE email = %s
+            WHERE lower(email) = lower(%s)
             """,
-            (data.email,)
+            (str(data.email),)
         )
 
         user = cursor.fetchone()
 
         if not user:
-
             raise HTTPException(
                 status_code=401,
                 detail="Invalid email or password"
@@ -245,19 +249,11 @@ def login(data: LoginRequest):
         stored_password = user[3]
         role = user[4]
 
-        # Verify password
-
-        if not verify_password(
-            data.password,
-            stored_password
-        ):
-
+        if not verify_password(data.password, stored_password):
             raise HTTPException(
                 status_code=401,
                 detail="Invalid email or password"
             )
-
-        # Create JWT
 
         access_token = create_access_token(
             user_id=user_id,
@@ -275,9 +271,12 @@ def login(data: LoginRequest):
                 "role": role
             }
         }
-
+    except psycopg.Error as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service unavailable."
+        ) from error
     finally:
-
         connection.close()
 
 
