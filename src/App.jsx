@@ -3597,6 +3597,12 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!checkingAuth && !authenticated && publicPath === "/dashboard") {
+      window.location.replace("/login")
+    }
+  }, [authenticated, checkingAuth, publicPath])
+
   const handleLogin = loggedInUser => {
     setUser(loggedInUser)
     setAuthenticated(true)
@@ -3613,9 +3619,11 @@ function App() {
     navigate("/")
   }
 
-  if (checkingAuth) {
+  if (checkingAuth && publicPath !== "/") {
     return <div className="auth-loading">Checking login...</div>
   }
+
+  if (publicPath === "/") return <Home navigate={navigate} />
 
   // Public website routes
   if (!authenticated || publicPath !== "/dashboard") {
@@ -3637,8 +3645,6 @@ function App() {
     if (publicPath === "/contact") return <Contact navigate={navigate} />
 
     if (!authenticated) return <Home navigate={navigate} />
-
-    if (publicPath === "/") return <Home navigate={navigate} />
   }
 
   // Private admin dashboard
