@@ -224,11 +224,13 @@ def signup():
 @router.post("/login")
 def login(data: LoginRequest):
     connection = None
+    stage = "database connection"
 
     try:
         connection = get_connection()
         cursor = connection.cursor()
 
+        stage = "user lookup"
         cursor.execute(
             """
             SELECT id, name, email, password, role
@@ -252,12 +254,14 @@ def login(data: LoginRequest):
         stored_password = user[3]
         role = user[4]
 
+        stage = "password verification"
         if not verify_password(data.password, stored_password):
             raise HTTPException(
                 status_code=401,
                 detail="Invalid email or password"
             )
 
+        stage = "token creation"
         access_token = create_access_token(
             user_id=user_id,
             email=email
@@ -274,12 +278,18 @@ def login(data: LoginRequest):
                 "role": role
             }
         }
+    except psycopg.Error as error:
+        logger.exception("Login failed during %s (database error)", stage)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Authentication service unavailable."
+        ) from error
     except HTTPException:
         raise
     except Exception as error:
-        logger.exception("Login failed while authenticating %s", data.email)
+        logger.exception("Login failed during %s (unexpected error)", stage)
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Authentication service unavailable."
         ) from error
     finally:
