@@ -200,6 +200,17 @@
   background: var(--orange);
 }
 
+.public-nav-links button:focus-visible,
+.public-menu-toggle:focus-visible,
+.public-login-button:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 3px;
+}
+
+.public-menu-toggle {
+  display: none;
+}
+
 /* =========================
    HERO
    ========================= */
@@ -1137,34 +1148,104 @@
   }
 }
 
-@media (max-width: 760px) {
-  .public-container {
-    width: calc(100% - 30px);
-  }
-
+@media (max-width: 900px) {
   .public-nav,
   .public-nav-inner {
-    height: 70px;
+    height: auto;
     min-height: 70px;
   }
 
   .public-nav-inner {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand toggle"
+      "links links"
+      "login login";
+    gap: 0 12px;
+    align-content: center;
+    padding: 12px 0;
+  }
+
+  .public-brand {
+    grid-area: brand;
   }
 
   .public-nav-links {
     display: none;
+    grid-area: links;
+  }
+
+  .public-nav-links.is-open {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .public-nav-links button {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    text-align: left;
+  }
+
+  .public-menu-toggle {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    grid-area: toggle;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--ink);
+  }
+
+  .public-menu-toggle:hover {
+    border-color: var(--orange);
+    background: var(--orange-soft);
+  }
+
+  .public-menu-toggle span {
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  .public-login-button {
+    display: none;
+    grid-area: login;
+  }
+
+  .public-login-button.is-open {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 4px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 760px) {
+  .public-container {
+    width: calc(100% - 30px);
   }
 
   .public-brand-mark {
     width: 39px;
     height: 39px;
     flex-basis: 39px;
-  }
-
-  .public-login-button {
-    width: 118px;
-    height: 40px;
   }
 
   .public-hero {
@@ -1232,12 +1313,6 @@
 
   .public-brand small {
     font-size: 8px;
-  }
-
-  .public-login-button {
-    width: 108px;
-    min-width: 108px;
-    font-size: 11px;
   }
 
   .public-hero h1 {

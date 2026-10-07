@@ -2833,10 +2833,25 @@ const publicFeatures = [
 ]
 
 function PublicNav({ navigate }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const navigateFromMenu = path => {
+    setMenuOpen(false)
+    navigate(path)
+  }
+
   return (
-    <header className="public-nav">
+    <header
+      className="public-nav"
+      onKeyDown={event => {
+        if (event.key === "Escape") {
+          setMenuOpen(false)
+          event.currentTarget.querySelector(".public-menu-toggle")?.focus()
+        }
+      }}
+    >
       <div className="public-container public-nav-inner">
-        <button className="public-brand" onClick={() => navigate("/")}>
+        <button className="public-brand" onClick={() => navigateFromMenu("/")}>
           <span className="public-brand-mark">IS</span>
           <span>
             <strong>ITSoft</strong>
@@ -2844,16 +2859,35 @@ function PublicNav({ navigate }) {
           </span>
         </button>
 
-        <nav className="public-nav-links">
-          <button onClick={() => navigate("/")}>Home</button>
-          <button onClick={() => navigate("/features")}>Features</button>
-          <button onClick={() => navigate("/how-it-works")}>How It Works</button>
-          <button onClick={() => navigate("/pricing")}>Pricing</button>
-          <button onClick={() => navigate("/about")}>About</button>
-          <button onClick={() => navigate("/contact")}>Contact</button>
+        <button
+          className="public-menu-toggle"
+          type="button"
+          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={menuOpen}
+          aria-controls="public-navigation-links"
+          onClick={() => setMenuOpen(isOpen => !isOpen)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <nav
+          id="public-navigation-links"
+          className={`public-nav-links${menuOpen ? " is-open" : ""}`}
+        >
+          <button onClick={() => navigateFromMenu("/")}>Home</button>
+          <button onClick={() => navigateFromMenu("/features")}>Features</button>
+          <button onClick={() => navigateFromMenu("/how-it-works")}>How It Works</button>
+          <button onClick={() => navigateFromMenu("/pricing")}>Pricing</button>
+          <button onClick={() => navigateFromMenu("/about")}>About</button>
+          <button onClick={() => navigateFromMenu("/contact")}>Contact</button>
         </nav>
 
-        <button className="public-login-button" onClick={() => navigate("/login")}>
+        <button
+          className={`public-login-button${menuOpen ? " is-open" : ""}`}
+          onClick={() => navigateFromMenu("/login")}
+        >
           Admin Login →
         </button>
       </div>
