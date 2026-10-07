@@ -294,7 +294,7 @@ function Customers() {
       const body = {
         name,
         phone,
-        email,
+        email: email.trim() || null,
         address
       }
 
@@ -2539,7 +2539,7 @@ function Settings() {
         method: "PUT",
         body: JSON.stringify({
           business_name: businessName,
-          email,
+          email: email.trim() || null,
           phone,
           address
         })
@@ -2702,9 +2702,14 @@ function AuthScreen({ onLogin }) {
         body: JSON.stringify({ email, password })
       })
 
+      const loggedInUser = data.user || {}
+      if (loggedInUser.role !== "admin") {
+        throw new Error("Administrator access is required.")
+      }
+
       localStorage.setItem("token", data.access_token)
-      localStorage.setItem("user", JSON.stringify(data.user || {}))
-      onLogin(data.user || {})
+      localStorage.setItem("user", JSON.stringify(loggedInUser))
+      onLogin(loggedInUser)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -3607,7 +3612,16 @@ function App() {
     if (token) {
       apiRequest("/api/auth/me")
         .then(data => {
-          setUser(data.user || data)
+          const authenticatedUser = data.user || data
+          if (authenticatedUser.role !== "admin") {
+            localStorage.removeItem("token")
+            localStorage.removeItem("user")
+            setAuthenticated(false)
+            setUser(null)
+            return
+          }
+
+          setUser(authenticatedUser)
           setAuthenticated(true)
           if (window.location.pathname === "/login") {
             window.history.replaceState({}, "", "/dashboard")
