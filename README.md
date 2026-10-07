@@ -55,19 +55,17 @@ Authentication uses JWT access tokens with PBKDF2 password hashing. Admin-only r
 1. Open a terminal in the project root.
 2. Install frontend dependencies:
    npm install
-3. Install backend dependencies:
-   cd backend
-   python -m pip install -r requirements.txt
-4. Create a backend/.env file based on backend/.env.example and provide the required values.
-5. Start the backend:
-   cd backend
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-6. Start the frontend:
-   cd ..
+3. Start the frontend with Vite:
    npm run dev
-7. Open the local frontend URL shown by Vite and sign in as the configured admin user.
+4. Open the local frontend URL shown by Vite. By default, it connects to the deployed Render API, so a local FastAPI server is not required for login or contact form submissions.
+
+VS Code Live Server's "Go Live" command (port 5500) does not run this React/Vite app. Use `npm run dev` and the URL printed by Vite.
+
+To use a local backend instead, create a root `.env.local` file with `VITE_API_BASE_URL=http://127.0.0.1:8000`, then start FastAPI separately. Backend installation and database configuration are only needed when running that local backend.
 
 ## Environment Variables
+
+The frontend accepts the public backend URL in `VITE_API_BASE_URL`. It defaults to the deployed Render API (`https://ai-business-manager-2.onrender.com`) in both development and production. The root `.env.example` documents this setting; Vite does not load `.env.example` automatically.
 
 The backend expects the following values, without exposing real secrets in the repo:
 
